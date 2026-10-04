@@ -36,17 +36,24 @@ window.TimestampEngine = (function () {
      * @returns {Date[]} Array of Date objects for each photo
      */
     function calculateTimestamps(params) {
-        const { baseDate, startTime, endTime, photoCount, mode = 'linear', stepSeconds = 30 } = params;
+        const {
+            baseDate,
+            startTime,
+            endTime,
+            photoCount,
+            mode = 'step',
+            stepSeconds = 30,
+            jitterSeconds = 0
+        } = params;
         
         if (photoCount <= 0) return [];
 
         const startDate = parseDateTime(baseDate, startTime);
         const endDate = parseDateTime(baseDate, endTime);
 
-        // If start time is after end time (e.g. overnight or user input error), handle date wrap
+        // If start time is after end time (linear mode), handle date wrap
         let totalDurationMs = endDate.getTime() - startDate.getTime();
         if (totalDurationMs < 0) {
-            // Add 24 hours to end date
             endDate.setDate(endDate.getDate() + 1);
             totalDurationMs = endDate.getTime() - startDate.getTime();
         }
@@ -69,6 +76,20 @@ window.TimestampEngine = (function () {
             for (let i = 0; i < photoCount; i++) {
                 const imgTimeMs = startDate.getTime() + (i * stepMs);
                 dates.push(new Date(imgTimeMs));
+            }
+        } else if (mode === 'random') {
+            let currentTimeMs = startDate.getTime();
+            dates.push(new Date(currentTimeMs));
+            const baseStepMs = stepSeconds * 1000;
+            const maxJitterMs = (jitterSeconds || 5) * 1000;
+
+            for (let i = 1; i < photoCount; i++) {
+                // Pseudo-random deterministic or natural offset per photo
+                const randomFactor = (Math.sin(i * 12.9898 + 78.233) + 1) / 2; // pseudo-random 0..1
+                const randomOffsetMs = (randomFactor * 2 - 1) * maxJitterMs;
+                const nextStepMs = Math.max(1000, baseStepMs + randomOffsetMs);
+                currentTimeMs += nextStepMs;
+                dates.push(new Date(currentTimeMs));
             }
         }
 
@@ -127,31 +148,60 @@ window.TimestampEngine = (function () {
     /**
      * Get summary text for duration and step interval
      */
-    function getSummaryStats(baseDate, startTime, endTime, photoCount) {
+    function getSummaryStats(params) {
+        const { baseDate, startTime, endTime, photoCount, mode = 'step', stepSeconds = 30 } = params;
         const startDate = parseDateTime(baseDate, startTime);
-        const endDate = parseDateTime(baseDate, endTime);
         
-        let diffMs = endDate.getTime() - startDate.getTime();
-        if (diffMs < 0) diffMs += 24 * 3600 * 1000;
+        let durationStr = '--';
+        let intervalStr = '--';
 
-        const totalMinutes = Math.floor(diffMs / 60000);
-        const totalSeconds = Math.floor(diffMs / 1000);
-
-        let durationStr = `${totalMinutes} mins`;
-        if (totalMinutes >= 60) {
-            const hrs = Math.floor(totalMinutes / 60);
-            const mins = totalMinutes % 60;
-            durationStr = `${hrs}h ${mins}m`;
+        if (photoCount <= 0) {
+            if (stepSeconds >= 60) {
+                const mins = (stepSeconds / 60).toFixed(1);
+                intervalStr = `${mins} min / photo`;
+            } else {
+                intervalStr = `${stepSeconds}s / photo`;
+            }
+            return { durationText: '--', intervalText: intervalStr };
         }
 
-        let intervalStr = '--';
-        if (photoCount > 1) {
-            const secPerPhoto = totalSeconds / (photoCount - 1);
-            if (secPerPhoto >= 60) {
-                const mins = (secPerPhoto / 60).toFixed(1);
-                intervalStr = `~${mins} min/photo`;
+        if (mode === 'linear') {
+            const endDate = parseDateTime(baseDate, endTime);
+            let diffMs = endDate.getTime() - startDate.getTime();
+            if (diffMs < 0) diffMs += 24 * 3600 * 1000;
+            const totalSeconds = Math.floor(diffMs / 1000);
+            const totalMinutes = Math.floor(totalSeconds / 60);
+
+            durationStr = totalMinutes >= 60 
+                ? `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m` 
+                : `${totalMinutes} mins`;
+
+            if (photoCount > 1) {
+                const secPerPhoto = totalSeconds / (photoCount - 1);
+                intervalStr = secPerPhoto >= 60 
+                    ? `~${(secPerPhoto / 60).toFixed(1)} m/photo` 
+                    : `~${secPerPhoto.toFixed(1)}s/photo`;
+            }
+        } else {
+            // Step or Random mode
+            const totalSeconds = stepSeconds * Math.max(0, photoCount - 1);
+            const totalMinutes = Math.floor(totalSeconds / 60);
+
+            if (totalMinutes >= 60) {
+                const hrs = Math.floor(totalMinutes / 60);
+                const mins = totalMinutes % 60;
+                durationStr = `${hrs}h ${mins}m`;
+            } else if (totalMinutes > 0) {
+                durationStr = `${totalMinutes} mins`;
             } else {
-                intervalStr = `~${secPerPhoto.toFixed(1)}s/photo`;
+                durationStr = `${totalSeconds} secs`;
+            }
+
+            if (stepSeconds >= 60) {
+                const mins = (stepSeconds / 60).toFixed(stepSeconds % 60 === 0 ? 0 : 1);
+                intervalStr = `${mins}m / photo`;
+            } else {
+                intervalStr = `${stepSeconds}s / photo`;
             }
         }
 

@@ -24,7 +24,10 @@
                 <span class="logo-text">timestamp</span>
             </div>
             <div class="header-stats" id="headerStats">
-                <span id="photoCountBadge">0 Photos</span>
+                <button id="switchModeBtn" class="btn btn-secondary-sm" title="Switch Photo Type Mode">
+                    <i class="fa-solid fa-scissors"></i> <span id="modeBadgeText">Mode: Pre-Stamped (Crop)</span>
+                </button>
+                <span id="photoCountBadge" class="ml-2">0 Photos</span>
             </div>
             <div class="header-actions">
                 <button id="addMoreFilesBtn" class="btn btn-secondary" disabled>
@@ -51,39 +54,121 @@
                         <input type="date" id="baseDate" class="form-input">
                     </div>
 
+                    <div class="form-group">
+                        <label for="interpolationMode">Calculation Mode</label>
+                        <select id="interpolationMode" class="form-select">
+                            <option value="step" selected>Fixed Interval (Start Time + Interval per Photo)</option>
+                            <option value="linear">Linear Spacing (Specify First & Last Photo Time)</option>
+                            <option value="random">Natural Variation (Start Time + Interval ± Jitter)</option>
+                        </select>
+                    </div>
+
                     <div class="form-row">
                         <div class="form-group flex-1">
                             <label for="startTime">First Photo Time</label>
-                            <input type="time" id="startTime" class="form-input" value="08:31" step="1">
+                            <input type="time" id="startTime" class="form-input" value="08:31:00" step="1">
                         </div>
-                        <div class="form-group flex-1">
+                        <div class="form-group flex-1 hidden" id="endTimeGroup">
                             <label for="endTime">Last Photo Time</label>
-                            <input type="time" id="endTime" class="form-input" value="08:50" step="1">
+                            <input type="time" id="endTime" class="form-input" value="08:50:00" step="1">
+                        </div>
+                    </div>
+
+                    <!-- Custom Interval Controls Panel -->
+                    <div id="intervalControlGroup">
+                        <div class="form-group">
+                            <label>Quick Interval Presets</label>
+                            <div class="preset-btn-group" id="intervalPresetGroup">
+                                <button type="button" class="preset-btn" data-sec="10">10s</button>
+                                <button type="button" class="preset-btn" data-sec="15">15s</button>
+                                <button type="button" class="preset-btn active" data-sec="30">30s</button>
+                                <button type="button" class="preset-btn" data-sec="60">1m</button>
+                                <button type="button" class="preset-btn" data-sec="120">2m</button>
+                                <button type="button" class="preset-btn" data-sec="300">5m</button>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group flex-1">
+                                <label for="stepValue">Custom Interval</label>
+                                <input type="number" id="stepValue" class="form-input" value="30" min="1" step="1">
+                            </div>
+                            <div class="form-group flex-1">
+                                <label for="stepUnit">Time Unit</label>
+                                <select id="stepUnit" class="form-select">
+                                    <option value="seconds" selected>Seconds (s)</option>
+                                    <option value="minutes">Minutes (m)</option>
+                                    <option value="hours">Hours (h)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group hidden" id="jitterGroup">
+                            <label for="jitterSeconds">Random Jitter (± Seconds)</label>
+                            <input type="number" id="jitterSeconds" class="form-input" value="5" min="1" max="60">
                         </div>
                     </div>
 
                     <div class="time-summary-box" id="timeSummaryBox">
                         <div class="summary-item">
-                            <span class="summary-label">Duration</span>
-                            <span class="summary-value" id="totalDurationText">19 mins</span>
+                            <span class="summary-label">Total Duration</span>
+                            <span class="summary-value" id="totalDurationText">--</span>
                         </div>
                         <div class="summary-item">
-                            <span class="summary-label">Interval</span>
-                            <span class="summary-value" id="intervalPerPhotoText">--</span>
+                            <span class="summary-label">Selected Interval</span>
+                            <span class="summary-value" id="intervalPerPhotoText">30s / photo</span>
                         </div>
                     </div>
+                </div>
 
-                    <div class="form-group mt-2">
-                        <label for="interpolationMode">Calculation Mode</label>
-                        <select id="interpolationMode" class="form-select">
-                            <option value="linear" selected>Linear Spacing (First to Last)</option>
-                            <option value="step">Fixed Step (+Seconds/Photo)</option>
+                <div class="panel-section" id="cropPanelSection">
+                    <div class="section-title-row">
+                        <h3 class="section-title">Prebuilt Stamp Removal</h3>
+                        <span class="badge-mode-status" id="cropStatusBadge">Active</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cropMode">Removal Action</label>
+                        <select id="cropMode" class="form-select">
+                            <option value="trim" selected>Trim Edge (True Crop - Cut Away)</option>
+                            <option value="mask">Solid Color Mask (Cover Region)</option>
                         </select>
                     </div>
 
-                    <div class="form-group hidden" id="stepIntervalGroup">
-                        <label for="stepSeconds">Step Interval (seconds)</label>
-                        <input type="number" id="stepSeconds" class="form-input" value="30" min="1">
+                    <div class="form-group">
+                        <label for="cropEdge">Timestamp Edge Position</label>
+                        <select id="cropEdge" class="form-select">
+                            <option value="bottom" selected>Bottom Edge (Standard)</option>
+                            <option value="top">Top Edge</option>
+                            <option value="left">Left Edge</option>
+                            <option value="right">Right Edge</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Quick Crop Presets</label>
+                        <div class="preset-btn-group" id="cropPresetGroup">
+                            <button type="button" class="preset-btn" data-crop="4">4%</button>
+                            <button type="button" class="preset-btn active" data-crop="6">6%</button>
+                            <button type="button" class="preset-btn" data-crop="8">8%</button>
+                            <button type="button" class="preset-btn" data-crop="10">10%</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cropAmountPercent">Crop Depth / Height (%)</label>
+                        <div class="range-with-val">
+                            <input type="range" id="cropAmountPercent" min="1" max="20" value="6" step="0.5">
+                            <span id="cropAmountVal">6.0%</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group hidden" id="maskColorGroup">
+                        <label for="maskColor">Mask Fill Color</label>
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="maskColor" value="#000000">
+                            <span class="color-val-hex" id="maskColorHex">#000000</span>
+                        </div>
                     </div>
                 </div>
 
@@ -152,6 +237,30 @@
                 </div>
 
                 <div class="panel-section">
+                    <h3 class="section-title">Watermark / Logo</h3>
+
+                    <div class="form-group">
+                        <label for="watermarkSizePercent">Size (% of image height)</label>
+                        <div class="range-with-val">
+                            <input type="range" id="watermarkSizePercent" min="2" max="20" value="8" step="0.5">
+                            <span id="watermarkSizeVal">8.0%</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="watermarkOpacity">Opacity</label>
+                        <input type="range" id="watermarkOpacity" min="0.05" max="1" value="0.95" step="0.05">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="watermarkOffsetY">Vertical Offset (nudge up/down)</label>
+                        <div class="range-with-val">
+                            <input type="range" id="watermarkOffsetY" min="-10" max="10" value="0" step="0.5">
+                            <span id="watermarkOffsetYVal">+0.0%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-section">
                     <h3 class="section-title">Position & Padding</h3>
                     
                     <div class="position-grid">
@@ -192,6 +301,8 @@
                             <span id="currentImageDimensions" class="badge-dim">1920x1080</span>
                         </div>
                         <div class="preview-controls">
+                            <label for="photoTimePicker" class="toolbar-label">Stamp:</label>
+                            <input type="time" id="photoTimePicker" class="form-input-sm" step="1" title="Set exact time for this photo">
                             <button id="prevPhotoBtn" class="btn-icon" title="Previous Photo"><i class="fa-solid fa-chevron-left"></i></button>
                             <button id="nextPhotoBtn" class="btn-icon" title="Next Photo"><i class="fa-solid fa-chevron-right"></i></button>
                             <button id="downloadCurrentBtn" class="btn btn-secondary-sm" title="Download Image">
@@ -217,6 +328,38 @@
                 </div>
             </section>
         </main>
+
+        <!-- Mode Selection Modal -->
+        <div id="modeSelectModal" class="modal-backdrop">
+            <div class="modal-card modal-card-lg">
+                <div class="modal-header text-center">
+                    <h2>Select Photo Type</h2>
+                    <p class="modal-subtitle">Do your photos already have an old timestamp, or are they bare photos?</p>
+                </div>
+                <div class="mode-options-grid">
+                    <div class="mode-option-card" id="modePreStampedCard">
+                        <div class="mode-card-icon">
+                            <i class="fa-solid fa-crop-simple"></i>
+                        </div>
+                        <h3>Pre-Stamped Photos</h3>
+                        <p>Photos have pre-existing timestamps. Crop/remove the old timestamp from the bottom and replace it with a new date & timestamp.</p>
+                        <button class="btn btn-primary btn-full mt-3" id="selectPreStampedBtn">
+                            <i class="fa-solid fa-scissors"></i> Crop & Replace Timestamp
+                        </button>
+                    </div>
+                    <div class="mode-option-card" id="modeBareCard">
+                        <div class="mode-card-icon">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <h3>Bare Photos</h3>
+                        <p>Clean photos without any prebuilt stamps. Calculate and overlay custom date & timestamps directly.</p>
+                        <button class="btn btn-secondary btn-full mt-3" id="selectBareBtn">
+                            <i class="fa-regular fa-image"></i> Add Timestamp Directly
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Download / Export Modal -->
         <div id="exportModal" class="modal-backdrop hidden">

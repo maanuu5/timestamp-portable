@@ -171,9 +171,26 @@ body {
     padding-right: 28px;
 }
 
-.form-input:focus, .form-select:focus {
+.form-input:focus, .form-select:focus, .form-input-sm:focus {
     outline: none;
     border-color: #ffffff;
+}
+
+.form-input-sm {
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    padding: 3px 6px;
+    font-size: 0.75rem;
+    font-family: inherit;
+    color-scheme: dark;
+}
+
+.toolbar-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
 /* Native date/time input calendar icons — force white */
@@ -586,6 +603,7 @@ canvas {
     align-items: center;
     justify-content: center;
     z-index: 100;
+    backdrop-filter: blur(4px);
 }
 
 .modal-card {
@@ -596,10 +614,156 @@ canvas {
     padding: 20px;
 }
 
+.modal-card-lg {
+    width: 640px;
+    max-width: 90vw;
+    padding: 28px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.modal-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
 .modal-header h3 {
     font-size: 1rem;
     margin-bottom: 14px;
     color: #fff;
+}
+
+/* Mode Options Grid */
+.mode-options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 600px) {
+    .mode-options-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.mode-option-card {
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.mode-option-card:hover {
+    border-color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 255, 255, 0.05);
+}
+
+.mode-card-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-highlight);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #ffffff;
+    margin-bottom: 14px;
+}
+
+.mode-option-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #ffffff;
+}
+
+.mode-option-card p {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+    flex: 1;
+}
+
+.btn-full {
+    width: 100%;
+}
+
+/* Section Title Row with Badge */
+.section-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.section-title-row .section-title {
+    margin-bottom: 0;
+}
+
+.badge-mode-status {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background-color: #ffffff;
+    color: #0a0a0a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-mode-status.off {
+    background-color: var(--bg-dark);
+    color: var(--text-dim);
+    border: 1px solid var(--border-color);
+}
+
+/* Preset Buttons */
+.preset-btn-group {
+    display: flex;
+    gap: 6px;
+}
+
+.preset-btn {
+    flex: 1;
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    border-radius: var(--radius-sm);
+    padding: 5px 0;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.preset-btn:hover {
+    border-color: var(--border-highlight);
+    color: var(--text-main);
+}
+
+.preset-btn.active {
+    background-color: #ffffff;
+    border-color: #ffffff;
+    color: #0a0a0a;
+    font-weight: 600;
 }
 
 .progress-bar-wrapper {
@@ -628,3 +792,5 @@ canvas {
 
 .mt-2 { margin-top: 8px; }
 .mt-3 { margin-top: 14px; }
+.ml-2 { margin-left: 8px; }
+

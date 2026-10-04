@@ -7,12 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = {
         photos: [], // Array of { id, file, name, dateObj, imageElement }
         currentIndex: 0,
+        mode: 'pre-stamped', // 'pre-stamped' or 'bare'
         options: {
             baseDate: '',
-            startTime: '08:31',
-            endTime: '08:50',
-            interpolationMode: 'linear',
+            startTime: '08:31:00',
+            endTime: '08:50:00',
+            interpolationMode: 'step', // 'step', 'linear', 'random'
+            stepValue: 30,
+            stepUnit: 'seconds',
             stepSeconds: 30,
+            jitterSeconds: 5,
             fontFamily: 'Inter, sans-serif',
             dateFormat: 'DD/MM/YYYY HH:mm',
             fontSizePercent: 2.8,
@@ -21,7 +25,17 @@ document.addEventListener('DOMContentLoaded', () => {
             enableShadow: true,
             enableOutline: true,
             position: 'bottom-right',
-            paddingPercent: 3.5
+            paddingPercent: 3.5,
+            // Prebuilt Stamp Crop Options
+            enableCrop: true,
+            cropMode: 'trim', // 'trim' or 'mask'
+            cropEdge: 'bottom',
+            cropAmountPercent: 6.0,
+            maskColor: '#000000',
+            // Watermark Options
+            watermarkSizePercent: 8,
+            watermarkOpacity: 0.95,
+            watermarkOffsetY: 0
         }
     };
 
@@ -32,6 +46,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const addMoreFilesBtn = document.getElementById('addMoreFilesBtn');
     const clearAllBtn = document.getElementById('clearAllBtn');
     const exportZipBtn = document.getElementById('exportZipBtn');
+
+    // Header Mode Switcher
+    const switchModeBtn = document.getElementById('switchModeBtn');
+    const modeBadgeText = document.getElementById('modeBadgeText');
+
+    // Mode Selection Modal
+    const modeSelectModal = document.getElementById('modeSelectModal');
+    const modePreStampedCard = document.getElementById('modePreStampedCard');
+    const selectPreStampedBtn = document.getElementById('selectPreStampedBtn');
+    const modeBareCard = document.getElementById('modeBareCard');
+    const selectBareBtn = document.getElementById('selectBareBtn');
+
+    // Prebuilt Stamp Removal Controls
+    const cropPanelSection = document.getElementById('cropPanelSection');
+    const cropStatusBadge = document.getElementById('cropStatusBadge');
+    const cropModeSelect = document.getElementById('cropMode');
+    const cropEdgeSelect = document.getElementById('cropEdge');
+    const cropPresetButtons = document.querySelectorAll('#cropPresetGroup .preset-btn');
+    const cropAmountPercentInput = document.getElementById('cropAmountPercent');
+    const cropAmountVal = document.getElementById('cropAmountVal');
+    const maskColorGroup = document.getElementById('maskColorGroup');
+    const maskColorInput = document.getElementById('maskColor');
+    const maskColorHex = document.getElementById('maskColorHex');
 
     const previewContainer = document.getElementById('previewContainer');
     const previewCanvas = document.getElementById('previewCanvas');
@@ -47,16 +84,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const thumbCount = document.getElementById('thumbCount');
     const photoCountBadge = document.getElementById('photoCountBadge');
     const sortByFilenameBtn = document.getElementById('sortByFilenameBtn');
+    const photoTimePicker = document.getElementById('photoTimePicker');
 
-    // Controls
+    // Time & Interval Controls
     const baseDateInput = document.getElementById('baseDate');
     const startTimeInput = document.getElementById('startTime');
     const endTimeInput = document.getElementById('endTime');
+    const endTimeGroup = document.getElementById('endTimeGroup');
     const totalDurationText = document.getElementById('totalDurationText');
     const intervalPerPhotoText = document.getElementById('intervalPerPhotoText');
     const interpolationModeSelect = document.getElementById('interpolationMode');
-    const stepIntervalGroup = document.getElementById('stepIntervalGroup');
-    const stepSecondsInput = document.getElementById('stepSeconds');
+    const intervalControlGroup = document.getElementById('intervalControlGroup');
+    const intervalPresetButtons = document.querySelectorAll('#intervalPresetGroup .preset-btn');
+    const stepValueInput = document.getElementById('stepValue');
+    const stepUnitSelect = document.getElementById('stepUnit');
+    const jitterGroup = document.getElementById('jitterGroup');
+    const jitterSecondsInput = document.getElementById('jitterSeconds');
 
     const fontFamilySelect = document.getElementById('fontFamily');
     const dateFormatSelect = document.getElementById('dateFormat');
@@ -69,6 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const enableOutlineInput = document.getElementById('enableOutline');
     const posButtons = document.querySelectorAll('.pos-btn');
     const paddingPercentInput = document.getElementById('paddingPercent');
+    const watermarkSizePercentInput = document.getElementById('watermarkSizePercent');
+    const watermarkSizeVal = document.getElementById('watermarkSizeVal');
+    const watermarkOpacityInput = document.getElementById('watermarkOpacity');
+    const watermarkOffsetYInput = document.getElementById('watermarkOffsetY');
+    const watermarkOffsetYVal = document.getElementById('watermarkOffsetYVal');
 
     // Export Modal
     const exportModal = document.getElementById('exportModal');
@@ -86,9 +134,91 @@ document.addEventListener('DOMContentLoaded', () => {
 
         bindEvents();
         updateTimeStatsUI();
+
+        // Prompt user with Mode Selection Modal on start
+        modeSelectModal.classList.remove('hidden');
+    }
+
+    function setPhotoMode(mode) {
+        state.mode = mode;
+        if (mode === 'pre-stamped') {
+            state.options.enableCrop = true;
+            modeBadgeText.textContent = 'Mode: Pre-Stamped (Crop)';
+            cropStatusBadge.textContent = 'Active';
+            cropStatusBadge.classList.remove('off');
+            cropPanelSection.classList.remove('hidden');
+        } else {
+            state.options.enableCrop = false;
+            modeBadgeText.textContent = 'Mode: Bare Photos';
+            cropStatusBadge.textContent = 'Disabled';
+            cropStatusBadge.classList.add('off');
+            cropPanelSection.classList.add('hidden');
+        }
+        modeSelectModal.classList.add('hidden');
+        renderCurrentPreview();
     }
 
     function bindEvents() {
+        // Mode switch triggers
+        switchModeBtn.addEventListener('click', () => {
+            modeSelectModal.classList.remove('hidden');
+        });
+
+        selectPreStampedBtn.addEventListener('click', () => setPhotoMode('pre-stamped'));
+        modePreStampedCard.addEventListener('click', (e) => {
+            if (e.target !== selectPreStampedBtn && !selectPreStampedBtn.contains(e.target)) {
+                setPhotoMode('pre-stamped');
+            }
+        });
+
+        selectBareBtn.addEventListener('click', () => setPhotoMode('bare'));
+        modeBareCard.addEventListener('click', (e) => {
+            if (e.target !== selectBareBtn && !selectBareBtn.contains(e.target)) {
+                setPhotoMode('bare');
+            }
+        });
+
+        // Prebuilt Stamp Removal Controls
+        cropModeSelect.addEventListener('change', (e) => {
+            state.options.cropMode = e.target.value;
+            if (e.target.value === 'mask') {
+                maskColorGroup.classList.remove('hidden');
+            } else {
+                maskColorGroup.classList.add('hidden');
+            }
+            renderCurrentPreview();
+        });
+
+        cropEdgeSelect.addEventListener('change', (e) => {
+            state.options.cropEdge = e.target.value;
+            renderCurrentPreview();
+        });
+
+        cropAmountPercentInput.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            state.options.cropAmountPercent = val;
+            cropAmountVal.textContent = `${val.toFixed(1)}%`;
+            renderCurrentPreview();
+        });
+
+        cropPresetButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                cropPresetButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const val = parseFloat(btn.dataset.crop);
+                state.options.cropAmountPercent = val;
+                cropAmountPercentInput.value = val;
+                cropAmountVal.textContent = `${val.toFixed(1)}%`;
+                renderCurrentPreview();
+            });
+        });
+
+        maskColorInput.addEventListener('input', (e) => {
+            state.options.maskColor = e.target.value;
+            maskColorHex.textContent = e.target.value.toUpperCase();
+            renderCurrentPreview();
+        });
+
         // Drag & Drop
         dropzone.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -118,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         clearAllBtn.addEventListener('click', handleClearAll);
 
-        // Control Inputs Binding
+        // Time & Interval Calculation Event Listeners
         baseDateInput.addEventListener('change', (e) => {
             state.options.baseDate = e.target.value;
             recalculateTimestamps();
@@ -135,19 +265,85 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         interpolationModeSelect.addEventListener('change', (e) => {
-            state.options.interpolationMode = e.target.value;
-            if (e.target.value === 'step') {
-                stepIntervalGroup.classList.remove('hidden');
-            } else {
-                stepIntervalGroup.classList.add('hidden');
+            const mode = e.target.value;
+            state.options.interpolationMode = mode;
+            
+            if (mode === 'linear') {
+                endTimeGroup.classList.remove('hidden');
+                intervalControlGroup.classList.add('hidden');
+            } else if (mode === 'step') {
+                endTimeGroup.classList.add('hidden');
+                intervalControlGroup.classList.remove('hidden');
+                jitterGroup.classList.add('hidden');
+            } else if (mode === 'random') {
+                endTimeGroup.classList.add('hidden');
+                intervalControlGroup.classList.remove('hidden');
+                jitterGroup.classList.remove('hidden');
             }
             recalculateTimestamps();
         });
 
-        stepSecondsInput.addEventListener('change', (e) => {
-            state.options.stepSeconds = parseFloat(e.target.value) || 30;
+        intervalPresetButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                intervalPresetButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const totalSec = parseInt(btn.dataset.sec, 10);
+                if (totalSec >= 60) {
+                    const mins = totalSec / 60;
+                    stepValueInput.value = mins;
+                    stepUnitSelect.value = 'minutes';
+                    state.options.stepValue = mins;
+                    state.options.stepUnit = 'minutes';
+                } else {
+                    stepValueInput.value = totalSec;
+                    stepUnitSelect.value = 'seconds';
+                    state.options.stepValue = totalSec;
+                    state.options.stepUnit = 'seconds';
+                }
+                state.options.stepSeconds = totalSec;
+                recalculateTimestamps();
+            });
+        });
+
+        stepValueInput.addEventListener('input', (e) => {
+            const val = Math.max(1, parseFloat(e.target.value) || 1);
+            state.options.stepValue = val;
+            state.options.stepSeconds = getCalculatedStepSeconds();
             recalculateTimestamps();
         });
+
+        stepUnitSelect.addEventListener('change', (e) => {
+            state.options.stepUnit = e.target.value;
+            state.options.stepSeconds = getCalculatedStepSeconds();
+            recalculateTimestamps();
+        });
+
+        jitterSecondsInput.addEventListener('input', (e) => {
+            state.options.jitterSeconds = Math.max(0, parseFloat(e.target.value) || 0);
+            recalculateTimestamps();
+        });
+
+        // Per-Photo Timestamp Manual Override
+        if (photoTimePicker) {
+            photoTimePicker.addEventListener('change', (e) => {
+                if (state.photos.length === 0) return;
+                const currentPhoto = state.photos[state.currentIndex];
+                if (!currentPhoto || !e.target.value) return;
+
+                const parts = e.target.value.split(':').map(Number);
+                const hrs = parts[0] || 0;
+                const mins = parts[1] || 0;
+                const secs = parts[2] || 0;
+
+                const d = new Date(currentPhoto.dateObj);
+                d.setHours(hrs, mins, secs);
+                currentPhoto.dateObj = d;
+
+                renderCurrentPreview();
+                renderThumbnails();
+            });
+        }
 
         // Styling Controls
         fontFamilySelect.addEventListener('change', (e) => {
@@ -191,6 +387,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         paddingPercentInput.addEventListener('input', (e) => {
             state.options.paddingPercent = parseFloat(e.target.value);
+            renderCurrentPreview();
+        });
+
+        // Watermark Controls
+        watermarkSizePercentInput.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            state.options.watermarkSizePercent = val;
+            watermarkSizeVal.textContent = `${val.toFixed(1)}%`;
+            renderCurrentPreview();
+        });
+
+        watermarkOpacityInput.addEventListener('input', (e) => {
+            state.options.watermarkOpacity = parseFloat(e.target.value);
+            renderCurrentPreview();
+        });
+
+        watermarkOffsetYInput.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            state.options.watermarkOffsetY = val;
+            watermarkOffsetYVal.textContent = (val >= 0 ? '+' : '') + val.toFixed(1) + '%';
             renderCurrentPreview();
         });
 
@@ -267,6 +483,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Calculate step interval in seconds from value & unit
+     */
+    function getCalculatedStepSeconds() {
+        const val = parseFloat(state.options.stepValue) || 30;
+        const unit = state.options.stepUnit;
+        if (unit === 'minutes') return Math.round(val * 60);
+        if (unit === 'hours') return Math.round(val * 3600);
+        return Math.round(val);
+    }
+
+    /**
      * Recalculate timestamps for all photos using TimestampEngine
      */
     function recalculateTimestamps() {
@@ -274,6 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         photoCountBadge.innerHTML = `${count} Photos`;
         thumbCount.textContent = count;
 
+        state.options.stepSeconds = getCalculatedStepSeconds();
         updateTimeStatsUI();
 
         if (count === 0) return;
@@ -284,7 +512,8 @@ document.addEventListener('DOMContentLoaded', () => {
             endTime: state.options.endTime,
             photoCount: count,
             mode: state.options.interpolationMode,
-            stepSeconds: state.options.stepSeconds
+            stepSeconds: state.options.stepSeconds,
+            jitterSeconds: state.options.jitterSeconds
         });
 
         // Assign dates to photo state
@@ -297,12 +526,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateTimeStatsUI() {
-        const stats = window.TimestampEngine.getSummaryStats(
-            state.options.baseDate,
-            state.options.startTime,
-            state.options.endTime,
-            state.photos.length
-        );
+        state.options.stepSeconds = getCalculatedStepSeconds();
+
+        const stats = window.TimestampEngine.getSummaryStats({
+            baseDate: state.options.baseDate,
+            startTime: state.options.startTime,
+            endTime: state.options.endTime,
+            photoCount: state.photos.length,
+            mode: state.options.interpolationMode,
+            stepSeconds: state.options.stepSeconds
+        });
 
         totalDurationText.textContent = stats.durationText;
         intervalPerPhotoText.textContent = stats.intervalText;
@@ -320,15 +553,31 @@ document.addEventListener('DOMContentLoaded', () => {
         currentImageName.textContent = currentPhoto.name;
         currentImageIndex.textContent = `${state.currentIndex + 1} of ${state.photos.length}`;
         
-        const w = currentPhoto.imageElement.naturalWidth || currentPhoto.imageElement.width;
-        const h = currentPhoto.imageElement.naturalHeight || currentPhoto.imageElement.height;
-        currentImageDimensions.textContent = `${w}x${h}px`;
+        // Update per-photo time picker input
+        if (photoTimePicker && currentPhoto.dateObj) {
+            const hh = String(currentPhoto.dateObj.getHours()).padStart(2, '0');
+            const mm = String(currentPhoto.dateObj.getMinutes()).padStart(2, '0');
+            const ss = String(currentPhoto.dateObj.getSeconds()).padStart(2, '0');
+            photoTimePicker.value = `${hh}:${mm}:${ss}`;
+        }
 
         // Format stamp text
         const stampText = window.TimestampEngine.formatDateTime(currentPhoto.dateObj, state.options.dateFormat);
 
         // Draw canvas
         window.CanvasRenderer.renderStamp(previewCanvas, currentPhoto.imageElement, stampText, state.options);
+
+        // Update dimension badge after rendering canvas
+        const finalW = previewCanvas.width;
+        const finalH = previewCanvas.height;
+        const origW = currentPhoto.imageElement.naturalWidth || currentPhoto.imageElement.width;
+        const origH = currentPhoto.imageElement.naturalHeight || currentPhoto.imageElement.height;
+        
+        if (state.options.enableCrop && state.options.cropMode === 'trim' && (finalW !== origW || finalH !== origH)) {
+            currentImageDimensions.textContent = `${finalW}x${finalH}px (Cropped from ${origW}x${origH})`;
+        } else {
+            currentImageDimensions.textContent = `${finalW}x${finalH}px`;
+        }
 
         // Update nav buttons
         prevPhotoBtn.disabled = state.currentIndex === 0;
