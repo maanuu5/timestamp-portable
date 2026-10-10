@@ -151,13 +151,13 @@ document.addEventListener('DOMContentLoaded', () => {
         state.mode = mode;
         if (mode === 'pre-stamped') {
             state.options.enableCrop = true;
-            modeBadgeText.textContent = 'Mode: Pre-Stamped (Crop)';
+            modeBadgeText.textContent = 'Mode: Replace Old Stamp';
             cropStatusBadge.textContent = 'Active';
             cropStatusBadge.classList.remove('off');
             cropPanelSection.classList.remove('hidden');
         } else {
             state.options.enableCrop = false;
-            modeBadgeText.textContent = 'Mode: Bare Photos';
+            modeBadgeText.textContent = 'Mode: Clean Photos';
             cropStatusBadge.textContent = 'Disabled';
             cropStatusBadge.classList.add('off');
             cropPanelSection.classList.add('hidden');

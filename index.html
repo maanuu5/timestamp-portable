@@ -23,7 +23,7 @@
             </div>
             <div class="header-stats" id="headerStats">
                 <button id="switchModeBtn" class="btn btn-secondary-sm" title="Switch Photo Type Mode">
-                    <i class="fa-solid fa-scissors"></i> <span id="modeBadgeText">Mode: Pre-Stamped (Crop)</span>
+                    <i class="fa-solid fa-scissors"></i> <span id="modeBadgeText">Mode: Replace Old Stamp</span>
                 </button>
                 <span id="photoCountBadge" class="ml-2">0 Photos</span>
             </div>
@@ -121,7 +121,7 @@
 
                 <div class="panel-section" id="cropPanelSection">
                     <div class="section-title-row">
-                        <h3 class="section-title">Prebuilt Stamp Removal</h3>
+                        <h3 class="section-title">Old Stamp Removal (Crop)</h3>
                         <span class="badge-mode-status" id="cropStatusBadge">Active</span>
                     </div>
 
@@ -331,26 +331,26 @@
         <div id="modeSelectModal" class="modal-backdrop">
             <div class="modal-card modal-card-lg">
                 <div class="modal-header text-center">
-                    <h2>Select Photo Type</h2>
-                    <p class="modal-subtitle">Do your photos already have an old timestamp, or are they bare photos?</p>
+                    <h2>Choose Your Photo Type</h2>
+                    <p class="modal-subtitle">Select the option that best matches your photos to get started:</p>
                 </div>
                 <div class="mode-options-grid">
                     <div class="mode-option-card" id="modePreStampedCard">
                         <div class="mode-card-icon">
-                            <i class="fa-solid fa-crop-simple"></i>
+                            <i class="fa-solid fa-scissors"></i>
                         </div>
-                        <h3>Pre-Stamped Photos</h3>
-                        <p>Photos have pre-existing timestamps. Crop/remove the old timestamp from the bottom and replace it with a new date & timestamp.</p>
+                        <h3>Photos with Old Timestamps</h3>
+                        <p>Choose this if your photos already have an old date or time stamped on them. The app will remove the old stamp from the edge and print your new date and time.</p>
                         <button class="btn btn-primary btn-full mt-3" id="selectPreStampedBtn">
-                            <i class="fa-solid fa-scissors"></i> Crop & Replace Timestamp
+                            <i class="fa-solid fa-scissors"></i> Replace Old Timestamp
                         </button>
                     </div>
                     <div class="mode-option-card" id="modeBareCard">
                         <div class="mode-card-icon">
                             <i class="fa-solid fa-wand-magic-sparkles"></i>
                         </div>
-                        <h3>Bare Photos</h3>
-                        <p>Clean photos without any prebuilt stamps. Calculate and overlay custom date & timestamps directly.</p>
+                        <h3>Clean Photos (No Existing Stamp)</h3>
+                        <p>Choose this if your photos are clean and untouched. The app keeps your full original picture intact and simply adds your new date and time on top.</p>
                         <button class="btn btn-secondary btn-full mt-3" id="selectBareBtn">
                             <i class="fa-regular fa-image"></i> Add Timestamp Directly
                         </button>
