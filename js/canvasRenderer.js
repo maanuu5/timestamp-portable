@@ -53,6 +53,7 @@ window.CanvasRenderer = (function () {
             maskColor = '#000000',
             // Watermark Options
             enableWatermark = true,
+            watermarkImage: customWatermarkImage = null,
             watermarkSizePercent = 8,
             watermarkOpacity = 0.95,
             watermarkOffsetY = 0
@@ -208,10 +209,13 @@ window.CanvasRenderer = (function () {
         ctx.restore();
 
         // 6. Draw watermark on the OPPOSITE horizontal side from the timestamp
-        if (enableWatermark && watermarkReady && watermarkImage) {
+        const activeWatermark = customWatermarkImage || watermarkImage;
+        const isWatermarkReady = activeWatermark && (activeWatermark.naturalWidth > 0 || (activeWatermark === watermarkImage && watermarkReady));
+
+        if (enableWatermark && isWatermarkReady && activeWatermark && activeWatermark.naturalWidth > 0 && activeWatermark.naturalHeight > 0) {
             // Watermark height: configurable % of canvas height, maintain aspect ratio
             const wmH = Math.round(canvasH * (watermarkSizePercent / 100));
-            const wmAspect = watermarkImage.naturalWidth / watermarkImage.naturalHeight;
+            const wmAspect = activeWatermark.naturalWidth / activeWatermark.naturalHeight;
             const wmW = Math.round(wmH * wmAspect);
 
             const isTop = position === 'top-left' || position === 'top-right';
@@ -230,6 +234,7 @@ window.CanvasRenderer = (function () {
             // Center the watermark vertically on that same line, then add manual nudge
             const wmY = Math.round(textCenterY - wmH / 2) + offsetPx;
 
+            let wmX;
             if (isRight) {
                 // Timestamp is right → watermark goes left
                 wmX = padX;
@@ -240,7 +245,7 @@ window.CanvasRenderer = (function () {
 
             ctx.save();
             ctx.globalAlpha = watermarkOpacity;
-            ctx.drawImage(watermarkImage, wmX, wmY, wmW, wmH);
+            ctx.drawImage(activeWatermark, wmX, wmY, wmW, wmH);
             ctx.restore();
         }
     }

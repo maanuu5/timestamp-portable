@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
             maskColor: '#000000',
             // Watermark Options
             enableWatermark: true,
+            watermarkImage: null,
             watermarkSizePercent: 8,
             watermarkOpacity: 0.95,
             watermarkOffsetY: 0
@@ -116,6 +117,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const enableWatermarkInput = document.getElementById('enableWatermark');
     const watermarkStatusBadge = document.getElementById('watermarkStatusBadge');
     const watermarkControlsContainer = document.getElementById('watermarkControlsContainer');
+    const watermarkDropdown = document.getElementById('watermarkDropdown');
+    const watermarkDropdownTrigger = document.getElementById('watermarkDropdownTrigger');
+    const currentWatermarkThumb = document.getElementById('currentWatermarkThumb');
+    const currentWatermarkName = document.getElementById('currentWatermarkName');
+    const watermarkDropdownArrow = document.getElementById('watermarkDropdownArrow');
+    const watermarkDropdownMenu = document.getElementById('watermarkDropdownMenu');
+    const watermarkOptionsList = document.getElementById('watermarkOptionsList');
+    const uploadWatermarkBtn = document.getElementById('uploadWatermarkBtn');
+    const watermarkFileInput = document.getElementById('watermarkFileInput');
     const watermarkSizePercentInput = document.getElementById('watermarkSizePercent');
     const watermarkSizeVal = document.getElementById('watermarkSizeVal');
     const watermarkOpacityInput = document.getElementById('watermarkOpacity');
@@ -127,6 +137,235 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportProgressBar = document.getElementById('exportProgressBar');
     const exportProgressText = document.getElementById('exportProgressText');
 
+    // Watermark Management System
+    const watermarkManager = {
+        watermarks: [
+            {
+                id: 'default',
+                name: 'Default Watermark',
+                src: 'watermark/watermark.png',
+                isDefault: true,
+                imageElement: null
+            }
+        ],
+        selectedId: 'default',
+
+        init() {
+            // Load default image
+            const defImg = new Image();
+            defImg.onload = () => {
+                if (state.photos.length > 0) {
+                    renderCurrentPreview();
+                }
+            };
+            defImg.src = 'watermark/watermark.png';
+            this.watermarks[0].imageElement = defImg;
+            state.options.watermarkImage = defImg;
+
+            // Load saved custom watermarks from localStorage
+            try {
+                const saved = localStorage.getItem('custom_watermarks');
+                if (saved) {
+                    const list = JSON.parse(saved);
+                    list.forEach(item => {
+                        const img = new Image();
+                        img.src = item.src;
+                        this.watermarks.push({
+                            id: item.id,
+                            name: item.name,
+                            src: item.src,
+                            isDefault: false,
+                            imageElement: img
+                        });
+                    });
+                }
+                const savedId = localStorage.getItem('selected_watermark_id');
+                if (savedId && this.watermarks.some(w => w.id === savedId)) {
+                    this.selectWatermark(savedId, false);
+                }
+            } catch (err) {
+                console.warn('Failed to load saved watermarks', err);
+            }
+
+            this.renderUI();
+            this.bindEvents();
+        },
+
+        selectWatermark(id, shouldRender = true) {
+            const wm = this.watermarks.find(w => w.id === id);
+            if (!wm) return;
+
+            this.selectedId = id;
+            state.options.watermarkImage = wm.imageElement;
+
+            try {
+                localStorage.setItem('selected_watermark_id', id);
+            } catch (e) {}
+
+            this.renderUI();
+            if (shouldRender) {
+                renderCurrentPreview();
+            }
+        },
+
+        renderUI() {
+            const current = this.watermarks.find(w => w.id === this.selectedId) || this.watermarks[0];
+            if (currentWatermarkThumb) currentWatermarkThumb.src = current.src;
+            if (currentWatermarkName) currentWatermarkName.textContent = current.name;
+
+            if (!watermarkOptionsList) return;
+            watermarkOptionsList.innerHTML = '';
+
+            this.watermarks.forEach(item => {
+                const isSelected = item.id === this.selectedId;
+                const row = document.createElement('div');
+                row.className = `watermark-option-item ${isSelected ? 'active' : ''}`;
+                row.dataset.id = item.id;
+
+                row.innerHTML = `
+                    <div class="watermark-option-thumb">
+                        <img src="${item.src}" alt="${item.name}">
+                    </div>
+                    <div class="watermark-option-info">
+                        <div class="watermark-option-name" title="${item.name}">${item.name}</div>
+                        <div class="watermark-option-tag">${item.isDefault ? 'Built-in' : 'Custom Upload'}</div>
+                    </div>
+                    <i class="fa-solid fa-check watermark-option-check"></i>
+                    ${!item.isDefault ? `<button type="button" class="watermark-option-delete" title="Delete watermark"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+                `;
+
+                // Select on row click (excluding delete button)
+                row.addEventListener('click', (e) => {
+                    const delBtn = e.target.closest('.watermark-option-delete');
+                    if (delBtn) return;
+                    this.selectWatermark(item.id);
+                    this.closeDropdown();
+                });
+
+                // Delete custom watermark
+                const deleteBtn = row.querySelector('.watermark-option-delete');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.deleteWatermark(item.id);
+                    });
+                }
+
+                watermarkOptionsList.appendChild(row);
+            });
+        },
+
+        deleteWatermark(id) {
+            const idx = this.watermarks.findIndex(w => w.id === id);
+            if (idx === -1) return;
+
+            this.watermarks.splice(idx, 1);
+            if (this.selectedId === id) {
+                this.selectWatermark('default', true);
+            }
+
+            try {
+                const toSave = this.watermarks.filter(w => !w.isDefault).map(w => ({
+                    id: w.id,
+                    name: w.name,
+                    src: w.src
+                }));
+                localStorage.setItem('custom_watermarks', JSON.stringify(toSave));
+            } catch (e) {}
+
+            this.renderUI();
+        },
+
+        toggleDropdown() {
+            if (!watermarkDropdownMenu) return;
+            const isOpen = !watermarkDropdownMenu.classList.contains('hidden');
+            if (isOpen) {
+                this.closeDropdown();
+            } else {
+                this.openDropdown();
+            }
+        },
+
+        openDropdown() {
+            if (!watermarkDropdownMenu) return;
+            watermarkDropdownMenu.classList.remove('hidden');
+            if (watermarkDropdownTrigger) watermarkDropdownTrigger.classList.add('open');
+        },
+
+        closeDropdown() {
+            if (!watermarkDropdownMenu) return;
+            watermarkDropdownMenu.classList.add('hidden');
+            if (watermarkDropdownTrigger) watermarkDropdownTrigger.classList.remove('open');
+        },
+
+        bindEvents() {
+            if (watermarkDropdownTrigger) {
+                watermarkDropdownTrigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggleDropdown();
+                });
+            }
+
+            // Close on click outside
+            document.addEventListener('click', (e) => {
+                if (watermarkDropdown && !watermarkDropdown.contains(e.target)) {
+                    this.closeDropdown();
+                }
+            });
+
+            // Upload button
+            if (uploadWatermarkBtn && watermarkFileInput) {
+                uploadWatermarkBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    watermarkFileInput.click();
+                });
+
+                watermarkFileInput.addEventListener('change', (e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                        const file = e.target.files[0];
+                        if (!file.type.startsWith('image/')) {
+                            alert('Please select a valid image file (PNG, JPG, SVG, WebP).');
+                            return;
+                        }
+
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            const dataUrl = event.target.result;
+                            const img = new Image();
+                            img.onload = () => {
+                                const newId = 'wm_' + Date.now();
+                                const newWm = {
+                                    id: newId,
+                                    name: file.name,
+                                    src: dataUrl,
+                                    isDefault: false,
+                                    imageElement: img
+                                };
+                                this.watermarks.push(newWm);
+                                this.selectWatermark(newId);
+                                this.closeDropdown();
+
+                                try {
+                                    const toSave = this.watermarks.filter(w => !w.isDefault).map(w => ({
+                                        id: w.id,
+                                        name: w.name,
+                                        src: w.src
+                                    }));
+                                    localStorage.setItem('custom_watermarks', JSON.stringify(toSave));
+                                } catch (storageErr) {
+                                    console.warn('Could not cache custom watermark in localStorage', storageErr);
+                                }
+                            };
+                            img.src = dataUrl;
+                        };
+                        reader.readAsDataURL(file);
+                        watermarkFileInput.value = '';
+                    }
+                });
+            }
+        }
+    };
+
     // --- Initialization ---
     init();
 
@@ -137,6 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.options.baseDate = today;
 
         bindEvents();
+        watermarkManager.init();
         updateTimeStatsUI();
 
         if (document.fonts && document.fonts.ready) {
