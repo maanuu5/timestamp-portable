@@ -1,0 +1,70 @@
+{
+  "name": "timestamp",
+  "productName": "Timestamp",
+  "version": "1.0.0",
+  "description": "Batch Image Date & Timestamp Overlay Desktop App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --dir",
+    "dist": "electron-builder --win"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maanuu5/timestamp-portable.git"
+  },
+  "keywords": [
+    "timestamp",
+    "watermark",
+    "batch-photo-stamp",
+    "photo-overlay"
+  ],
+  "author": "maanuu5",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.3.1",
+    "jszip": "^3.10.2"
+  },
+  "devDependencies": {
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.timestamp.desktop",
+    "productName": "Timestamp",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Timestamp"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist/*",
+      "!scratch/*",
+      "!.git/*"
+    ]
+  }
+}

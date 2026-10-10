@@ -135,6 +135,14 @@ document.addEventListener('DOMContentLoaded', () => {
         bindEvents();
         updateTimeStatsUI();
 
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                if (state.photos.length > 0) {
+                    renderCurrentPreview();
+                }
+            });
+        }
+
         // Prompt user with Mode Selection Modal on start
         modeSelectModal.classList.remove('hidden');
     }
