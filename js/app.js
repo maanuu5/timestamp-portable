@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cropAmountPercent: 6.0,
             maskColor: '#000000',
             // Watermark Options
+            enableWatermark: true,
             watermarkSizePercent: 8,
             watermarkOpacity: 0.95,
             watermarkOffsetY: 0
@@ -112,6 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const enableOutlineInput = document.getElementById('enableOutline');
     const posButtons = document.querySelectorAll('.pos-btn');
     const paddingPercentInput = document.getElementById('paddingPercent');
+    const enableWatermarkInput = document.getElementById('enableWatermark');
+    const watermarkStatusBadge = document.getElementById('watermarkStatusBadge');
+    const watermarkControlsContainer = document.getElementById('watermarkControlsContainer');
     const watermarkSizePercentInput = document.getElementById('watermarkSizePercent');
     const watermarkSizeVal = document.getElementById('watermarkSizeVal');
     const watermarkOpacityInput = document.getElementById('watermarkOpacity');
@@ -399,6 +403,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Watermark Controls
+        if (enableWatermarkInput) {
+            enableWatermarkInput.addEventListener('change', (e) => {
+                const isChecked = e.target.checked;
+                state.options.enableWatermark = isChecked;
+                if (watermarkStatusBadge) {
+                    watermarkStatusBadge.textContent = isChecked ? 'Active' : 'Off';
+                    if (isChecked) {
+                        watermarkStatusBadge.classList.remove('off');
+                    } else {
+                        watermarkStatusBadge.classList.add('off');
+                    }
+                }
+                if (watermarkControlsContainer) {
+                    watermarkControlsContainer.classList.toggle('disabled-group', !isChecked);
+                }
+                renderCurrentPreview();
+            });
+        }
+
         watermarkSizePercentInput.addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
             state.options.watermarkSizePercent = val;

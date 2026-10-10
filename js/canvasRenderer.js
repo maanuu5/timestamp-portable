@@ -52,6 +52,7 @@ window.CanvasRenderer = (function () {
             cropAmountPercent = 6.0,
             maskColor = '#000000',
             // Watermark Options
+            enableWatermark = true,
             watermarkSizePercent = 8,
             watermarkOpacity = 0.95,
             watermarkOffsetY = 0
@@ -207,7 +208,7 @@ window.CanvasRenderer = (function () {
         ctx.restore();
 
         // 6. Draw watermark on the OPPOSITE horizontal side from the timestamp
-        if (watermarkReady && watermarkImage) {
+        if (enableWatermark && watermarkReady && watermarkImage) {
             // Watermark height: configurable % of canvas height, maintain aspect ratio
             const wmH = Math.round(canvasH * (watermarkSizePercent / 100));
             const wmAspect = watermarkImage.naturalWidth / watermarkImage.naturalHeight;

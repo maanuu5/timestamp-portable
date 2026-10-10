@@ -234,27 +234,38 @@
                     </div>
                 </div>
 
-                <div class="panel-section">
-                    <h3 class="section-title">Watermark / Logo</h3>
-
-                    <div class="form-group">
-                        <label for="watermarkSizePercent">Size (% of image height)</label>
-                        <div class="range-with-val">
-                            <input type="range" id="watermarkSizePercent" min="2" max="20" value="8" step="0.5">
-                            <span id="watermarkSizeVal">8.0%</span>
+                <div class="panel-section" id="watermarkPanelSection">
+                    <div class="section-title-row">
+                        <h3 class="section-title">Watermark / Logo</h3>
+                        <div class="toggle-control-wrapper">
+                            <span class="badge-mode-status" id="watermarkStatusBadge">Active</span>
+                            <label class="switch-toggle" title="Enable or disable watermark overlay">
+                                <input type="checkbox" id="enableWatermark" checked>
+                                <span class="switch-slider"></span>
+                            </label>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="watermarkOpacity">Opacity</label>
-                        <input type="range" id="watermarkOpacity" min="0.05" max="1" value="0.95" step="0.05">
-                    </div>
+                    <div id="watermarkControlsContainer">
+                        <div class="form-group">
+                            <label for="watermarkSizePercent">Size (% of image height)</label>
+                            <div class="range-with-val">
+                                <input type="range" id="watermarkSizePercent" min="2" max="20" value="8" step="0.5">
+                                <span id="watermarkSizeVal">8.0%</span>
+                            </div>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="watermarkOffsetY">Vertical Offset (nudge up/down)</label>
-                        <div class="range-with-val">
-                            <input type="range" id="watermarkOffsetY" min="-10" max="10" value="0" step="0.5">
-                            <span id="watermarkOffsetYVal">+0.0%</span>
+                        <div class="form-group">
+                            <label for="watermarkOpacity">Opacity</label>
+                            <input type="range" id="watermarkOpacity" min="0.05" max="1" value="0.95" step="0.05">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="watermarkOffsetY">Vertical Offset (nudge up/down)</label>
+                            <div class="range-with-val">
+                                <input type="range" id="watermarkOffsetY" min="-10" max="10" value="0" step="0.5">
+                                <span id="watermarkOffsetYVal">+0.0%</span>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -735,6 +735,69 @@ canvas {
     border: 1px solid var(--border-color);
 }
 
+.toggle-control-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Switch Toggle Component */
+.switch-toggle {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.switch-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    transition: all 0.2s ease;
+}
+
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 12px;
+    width: 12px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--text-dim);
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.switch-toggle input:checked + .switch-slider {
+    background-color: #ffffff;
+    border-color: #ffffff;
+}
+
+.switch-toggle input:checked + .switch-slider:before {
+    transform: translateX(14px);
+    background-color: #0a0a0a;
+}
+
+.disabled-group {
+    opacity: 0.35;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
 /* Preset Buttons */
 .preset-btn-group {
     display: flex;
