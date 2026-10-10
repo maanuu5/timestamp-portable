@@ -28,6 +28,12 @@
                 <span id="photoCountBadge" class="ml-2">0 Photos</span>
             </div>
             <div class="header-actions">
+                <div class="donate-btn-wrapper">
+                    <span class="donate-float-hint" id="donateFloatHint">Support the project ☕</span>
+                    <button id="headerDonateBtn" class="btn btn-secondary btn-header-donate" title="Support the project">
+                        <i class="fa-solid fa-mug-hot"></i> Donate
+                    </button>
+                </div>
                 <button id="addMoreFilesBtn" class="btn btn-secondary" disabled>
                     <i class="fa-solid fa-plus"></i> Add Images
                 </button>
@@ -388,6 +394,45 @@
                         <p>Choose this if your photos are clean and untouched. The app keeps your full original picture intact and simply adds your new date and time on top.</p>
                         <button class="btn btn-secondary btn-full mt-3" id="selectBareBtn">
                             <i class="fa-regular fa-image"></i> Add Timestamp Directly
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support / Donation Modal -->
+        <div id="donateModal" class="modal-backdrop hidden">
+            <div class="modal-card modal-card-donate">
+                <button type="button" class="modal-close-btn" id="closeDonateModalBtn" title="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div class="modal-header text-center">
+                    <div class="donate-icon-badge">
+                        <i class="fa-solid fa-mug-hot"></i>
+                    </div>
+                    <h2>Support Timestamp</h2>
+                    <p class="modal-subtitle">
+                        Free, private, and runs 100% offline on your device with no ads.
+                    </p>
+                </div>
+                <div class="donate-modal-body">
+                    <p class="donate-pitch">
+                        If this tool saves your time or helps your photo workflow, consider buying me a coffee to support continued development and updates!
+                    </p>
+                    
+                    <a href="https://buymeacoffee.com/maanuu5" target="_blank" rel="noopener noreferrer" class="btn-bmc-donate" id="bmcDonateBtn">
+                        <i class="fa-solid fa-mug-hot"></i>
+                        <span>Support on Buy Me a Coffee</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square bmc-ext-icon"></i>
+                    </a>
+
+                    <div class="donate-footer-actions">
+                        <label class="donate-remember-label">
+                            <input type="checkbox" id="dontShowDonateAgain">
+                            <span>Don't show this again</span>
+                        </label>
+                        <button type="button" class="btn btn-secondary-sm" id="skipDonateBtn">
+                            Continue to App
                         </button>
                     </div>
                 </div>

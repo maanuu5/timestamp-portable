@@ -48,6 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const addMoreFilesBtn = document.getElementById('addMoreFilesBtn');
     const clearAllBtn = document.getElementById('clearAllBtn');
     const exportZipBtn = document.getElementById('exportZipBtn');
+    const headerDonateBtn = document.getElementById('headerDonateBtn');
+    const donateModal = document.getElementById('donateModal');
+    const closeDonateModalBtn = document.getElementById('closeDonateModalBtn');
+    const bmcDonateBtn = document.getElementById('bmcDonateBtn');
+    const dontShowDonateAgain = document.getElementById('dontShowDonateAgain');
+    const skipDonateBtn = document.getElementById('skipDonateBtn');
 
     // Header Mode Switcher
     const switchModeBtn = document.getElementById('switchModeBtn');
@@ -408,6 +414,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         modeSelectModal.classList.add('hidden');
         renderCurrentPreview();
+
+        // Show donation modal after mode selection if not dismissed
+        try {
+            const donateDismissed = localStorage.getItem('timestamp_donate_dismissed');
+            if (!donateDismissed) {
+                setTimeout(() => {
+                    showDonateModal();
+                }, 350);
+            }
+        } catch (e) {
+            setTimeout(() => {
+                showDonateModal();
+            }, 350);
+        }
+    }
+
+    function showDonateModal() {
+        if (donateModal) {
+            donateModal.classList.remove('hidden');
+        }
+    }
+
+    function closeDonateModal() {
+        if (donateModal) {
+            donateModal.classList.add('hidden');
+            if (dontShowDonateAgain && dontShowDonateAgain.checked) {
+                try {
+                    localStorage.setItem('timestamp_donate_dismissed', 'true');
+                } catch (e) {}
+            }
+        }
     }
 
     function bindEvents() {
@@ -715,6 +752,36 @@ document.addEventListener('DOMContentLoaded', () => {
         // Download Actions
         downloadCurrentBtn.addEventListener('click', handleDownloadCurrent);
         exportZipBtn.addEventListener('click', handleExportZip);
+
+        // Support / Donate Modal Events
+        if (headerDonateBtn) {
+            headerDonateBtn.addEventListener('click', () => {
+                // Hide the floating hint once the user has interacted with it
+                const hint = document.getElementById('donateFloatHint');
+                if (hint) hint.style.display = 'none';
+                showDonateModal();
+            });
+        }
+        if (closeDonateModalBtn) {
+            closeDonateModalBtn.addEventListener('click', closeDonateModal);
+        }
+        if (skipDonateBtn) {
+            skipDonateBtn.addEventListener('click', closeDonateModal);
+        }
+        if (donateModal) {
+            donateModal.addEventListener('click', (e) => {
+                if (e.target === donateModal) {
+                    closeDonateModal();
+                }
+            });
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (donateModal && !donateModal.classList.contains('hidden')) {
+                    closeDonateModal();
+                }
+            }
+        });
     }
 
     /**
