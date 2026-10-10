@@ -1195,47 +1195,39 @@ canvas {
 
 /* Donate Button Floating Hint */
 .donate-btn-wrapper {
-    position: relative;
     display: inline-flex;
     align-items: center;
+    gap: 10px;
 }
 
 .donate-float-hint {
-    position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
     white-space: nowrap;
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-weight: 500;
     color: #ffdd00;
-    background: rgba(30, 30, 30, 0.92);
+    background: rgba(30, 30, 30, 0.88);
     border: 1px solid rgba(255, 221, 0, 0.3);
     border-radius: 20px;
-    padding: 3px 10px;
+    padding: 4px 11px;
     pointer-events: none;
     animation: donateFloatBob 3s ease-in-out infinite, donateFadeIn 1.2s ease 0.8s both;
-    z-index: 10;
 }
 
 .donate-float-hint::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: rgba(255, 221, 0, 0.3);
+    content: '→';
+    margin-left: 5px;
+    font-size: 0.65rem;
+    opacity: 0.7;
 }
 
 @keyframes donateFloatBob {
-    0%, 100% { transform: translateX(-50%) translateY(0px); }
-    50%       { transform: translateX(-50%) translateY(-4px); }
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-2px); }
 }
 
 @keyframes donateFadeIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(6px); }
-    to   { opacity: 1; transform: translateX(-50%) translateY(0px); }
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0px); }
 }
 
 /* Utility Classes */

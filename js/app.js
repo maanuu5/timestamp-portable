@@ -414,20 +414,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         modeSelectModal.classList.add('hidden');
         renderCurrentPreview();
-
-        // Show donation modal after mode selection if not dismissed
-        try {
-            const donateDismissed = localStorage.getItem('timestamp_donate_dismissed');
-            if (!donateDismissed) {
-                setTimeout(() => {
-                    showDonateModal();
-                }, 350);
-            }
-        } catch (e) {
-            setTimeout(() => {
-                showDonateModal();
-            }, 350);
-        }
     }
 
     function showDonateModal() {
