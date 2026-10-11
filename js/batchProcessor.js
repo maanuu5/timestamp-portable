@@ -38,7 +38,13 @@ window.BatchProcessor = (function () {
             const img = await loadImageElement(photo.file);
 
             // Render stamp onto hidden canvas
-            window.CanvasRenderer.renderStamp(tempCanvas, img, stampText, styleOptions);
+            const renderOptions = styleOptions.autoCropByOrientation
+                ? {
+                    ...styleOptions,
+                    cropAmountPercent: getDefaultCropPercent(img)
+                }
+                : styleOptions;
+            window.CanvasRenderer.renderStamp(tempCanvas, img, stampText, renderOptions);
 
             // Export to JPEG blob
             const blob = await window.CanvasRenderer.exportCanvasBlob(tempCanvas, 'image/jpeg', 0.92);
@@ -82,6 +88,12 @@ window.BatchProcessor = (function () {
             };
             img.src = url;
         });
+    }
+
+    function getDefaultCropPercent(imageElement) {
+        const width = imageElement.naturalWidth || imageElement.width;
+        const height = imageElement.naturalHeight || imageElement.height;
+        return height > width ? 6 : 10;
     }
 
     return {
