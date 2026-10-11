@@ -472,7 +472,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         cropAmountPercentInput.addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
-            state.options.autoCropByOrientation = false;
+            const currentPhoto = state.photos[state.currentIndex];
+            if (currentPhoto) currentPhoto.cropAmountPercent = val;
             state.options.cropAmountPercent = val;
             cropAmountVal.textContent = `${val.toFixed(1)}%`;
             renderCurrentPreview();
@@ -483,7 +484,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 cropPresetButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 const val = parseFloat(btn.dataset.crop);
-                state.options.autoCropByOrientation = false;
+                const currentPhoto = state.photos[state.currentIndex];
+                if (currentPhoto) currentPhoto.cropAmountPercent = val;
                 state.options.cropAmountPercent = val;
                 cropAmountPercentInput.value = val;
                 cropAmountVal.textContent = `${val.toFixed(1)}%`;
@@ -877,7 +879,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentPhoto = state.photos[state.currentIndex];
         if (!currentPhoto) return;
 
-        applyDefaultCropPreset(currentPhoto.imageElement);
+        updateCropPresetForPhoto(currentPhoto);
 
         currentImageName.textContent = currentPhoto.name;
         currentImageIndex.textContent = `${state.currentIndex + 1} of ${state.photos.length}`;
@@ -913,14 +915,16 @@ document.addEventListener('DOMContentLoaded', () => {
         nextPhotoBtn.disabled = state.currentIndex === state.photos.length - 1;
     }
 
-    function applyDefaultCropPreset(imageElement) {
-        if (!state.options.autoCropByOrientation || !imageElement) return;
+    function updateCropPresetForPhoto(photo) {
+        if (!photo || !photo.imageElement) return;
 
-        const width = imageElement.naturalWidth || imageElement.width;
-        const height = imageElement.naturalHeight || imageElement.height;
+        const width = photo.imageElement.naturalWidth || photo.imageElement.width;
+        const height = photo.imageElement.naturalHeight || photo.imageElement.height;
         if (!width || !height) return;
 
-        const cropPercent = height > width ? 6 : 10;
+        const cropPercent = Number.isFinite(photo.cropAmountPercent)
+            ? photo.cropAmountPercent
+            : (height > width ? 6 : 10);
         state.options.cropAmountPercent = cropPercent;
         cropAmountPercentInput.value = cropPercent;
         cropAmountVal.textContent = `${cropPercent.toFixed(1)}%`;

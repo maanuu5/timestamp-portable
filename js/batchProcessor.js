@@ -38,10 +38,12 @@ window.BatchProcessor = (function () {
             const img = await loadImageElement(photo.file);
 
             // Render stamp onto hidden canvas
-            const renderOptions = styleOptions.autoCropByOrientation
+            const renderOptions = Number.isFinite(photo.cropAmountPercent) || styleOptions.autoCropByOrientation
                 ? {
                     ...styleOptions,
-                    cropAmountPercent: getDefaultCropPercent(img)
+                    cropAmountPercent: Number.isFinite(photo.cropAmountPercent)
+                        ? photo.cropAmountPercent
+                        : getDefaultCropPercent(img)
                 }
                 : styleOptions;
             window.CanvasRenderer.renderStamp(tempCanvas, img, stampText, renderOptions);
